@@ -1,0 +1,79 @@
+# Build directories
+build/
+bin/
+lib/
+Debug/
+Release/
+x64/
+x86/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+
+# Qt generated files
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+*.qm
+*.moc
+
+# Object files
+*.o
+*.obj
+*.so
+*.dll
+*.dylib
+*.exe
+
+# IDE files
+.vscode/
+.idea/
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.user
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.bak
+*.swp
+*~
+
+# Model files (optional - uncomment if you don't want to track trained models)
+# *.model
+# *.pkl
+# *.h5
+
+# Dataset files (optional - uncomment if you don't want to track large datasets)
+# *.csv
+# *.txt
+# *.json
+# *.xml
+# *.h5
+# *.hdf5
+# *.mat
+# *.npy
+# *.npz
+# *.jpg
+# *.jpeg
+# *.png
+# *.bmp
+# *.tiff
+# *.tif 
