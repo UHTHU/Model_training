@@ -1,14 +1,13 @@
 #ifndef MODELAINTRAINER_H
 #define MODELAINTRAINER_H
 
-#include <QObject>
-#include <QString>
-#include <QVector>
-#include <QThread>
-#include <QMutex>
-#include <QTimer>
-#include <random>
+#include <string>
+#include <vector>
+#include <thread>
+#include <mutex>
 #include <memory>
+#include <functional>
+#include <random>
 
 // Forward declarations
 class NeuralNetwork;
@@ -17,15 +16,15 @@ class LogisticModel;
 class RandomForest;
 
 struct TrainingConfig {
-    QString modelType;
+    std::string modelType;
     int inputSize;
     int hiddenSize;
     int outputSize;
     double learningRate;
     int batchSize;
     int epochs;
-    QString datasetPath;
-    QString outputPath;
+    std::string datasetPath;
+    std::string outputPath;
     
     TrainingConfig() : inputSize(784), hiddenSize(128), outputSize(10), 
                       learningRate(0.001), batchSize(32), epochs(100) {}
@@ -37,27 +36,25 @@ struct TrainingMetrics {
     double accuracy;
     double validationLoss;
     double validationAccuracy;
-    QVector<double> lossHistory;
-    QVector<double> accuracyHistory;
-    QVector<double> validationLossHistory;
-    QVector<double> validationAccuracyHistory;
+    std::vector<double> lossHistory;
+    std::vector<double> accuracyHistory;
+    std::vector<double> validationLossHistory;
+    std::vector<double> validationAccuracyHistory;
     
     TrainingMetrics() : currentEpoch(0), loss(0.0), accuracy(0.0), 
                        validationLoss(0.0), validationAccuracy(0.0) {}
 };
 
-class ModelTrainer : public QObject
+class ModelTrainer
 {
-    Q_OBJECT
-
 public:
-    explicit ModelTrainer(QObject *parent = nullptr);
+    explicit ModelTrainer();
     ~ModelTrainer();
 
     // Configuration setters
-    void setDatasetPath(const QString &path);
-    void setOutputPath(const QString &path);
-    void setModelType(const QString &type);
+    void setDatasetPath(const std::string& path);
+    void setOutputPath(const std::string& path);
+    void setModelType(const std::string& type);
     void setInputSize(int size);
     void setHiddenSize(int size);
     void setOutputSize(int size);
@@ -72,24 +69,17 @@ public:
     void resumeTraining();
     
     // Model operations
-    bool saveModel(const QString &path);
-    bool loadModel(const QString &path);
+    bool saveModel(const std::string& path);
+    bool loadModel(const std::string& path);
     
     // Getters
     TrainingConfig getConfig() const;
     TrainingMetrics getMetrics() const;
     bool isTraining() const;
     bool isPaused() const;
-
-signals:
-    void progressUpdated(int epoch, double loss, double accuracy);
-    void trainingFinished();
-    void trainingError(const QString &error);
-    void modelSaved(const QString &path);
-    void modelLoaded(const QString &path);
-
-private slots:
-    void trainingLoop();
+    
+    // Progress callback
+    void setProgressCallback(std::function<void(int, double, double)> callback);
 
 private:
     // Model creation and management
@@ -104,14 +94,14 @@ private:
     void trainRandomForest();
     
     // Utility functions
-    double calculateLoss(const QVector<double> &predictions, const QVector<double> &targets);
-    double calculateAccuracy(const QVector<double> &predictions, const QVector<int> &targets);
-    QVector<double> forwardPass(const QVector<double> &input);
-    void backwardPass(const QVector<double> &input, const QVector<double> &target);
+    double calculateLoss(const std::vector<double>& predictions, const std::vector<double>& targets);
+    double calculateAccuracy(const std::vector<double>& predictions, const std::vector<int>& targets);
+    std::vector<double> forwardPass(const std::vector<double>& input);
+    void backwardPass(const std::vector<double>& input, const std::vector<double>& target);
     
     // Data processing
-    QVector<QVector<double>> getBatch(int batchIndex);
-    QVector<int> getBatchLabels(int batchIndex);
+    std::vector<std::vector<double>> getBatch(int batchIndex);
+    std::vector<int> getBatchLabels(int batchIndex);
     void normalizeData();
     void shuffleData();
     
@@ -124,10 +114,10 @@ private:
     // Training state
     TrainingConfig config;
     TrainingMetrics metrics;
-    QVector<QVector<double>> trainingData;
-    QVector<int> trainingLabels;
-    QVector<QVector<double>> validationData;
-    QVector<int> validationLabels;
+    std::vector<std::vector<double>> trainingData;
+    std::vector<int> trainingLabels;
+    std::vector<std::vector<double>> validationData;
+    std::vector<int> validationLabels;
     
     // Control flags
     bool trainingFlag;
@@ -135,8 +125,11 @@ private:
     bool stopFlag;
     
     // Threading
-    QMutex trainingMutex;
-    QTimer *trainingTimer;
+    std::mutex trainingMutex;
+    std::thread trainingThread;
+    
+    // Progress callback
+    std::function<void(int, double, double)> progressCallback;
     
     // Random number generation
     std::mt19937 rng;
@@ -149,12 +142,12 @@ class BaseModel
 public:
     virtual ~BaseModel() = default;
     virtual void initialize(int inputSize, int outputSize) = 0;
-    virtual QVector<double> predict(const QVector<double> &input) = 0;
-    virtual void train(const QVector<QVector<double>> &inputs, 
-                      const QVector<QVector<double>> &targets, 
+    virtual std::vector<double> predict(const std::vector<double>& input) = 0;
+    virtual void train(const std::vector<std::vector<double>>& inputs, 
+                      const std::vector<std::vector<double>>& targets, 
                       double learningRate) = 0;
-    virtual bool save(const QString &path) = 0;
-    virtual bool load(const QString &path) = 0;
+    virtual bool save(const std::string& path) = 0;
+    virtual bool load(const std::string& path) = 0;
 };
 
 // Neural Network implementation
@@ -165,27 +158,27 @@ public:
     ~NeuralNetwork();
     
     void initialize(int inputSize, int outputSize) override;
-    QVector<double> predict(const QVector<double> &input) override;
-    void train(const QVector<QVector<double>> &inputs, 
-               const QVector<QVector<double>> &targets, 
+    std::vector<double> predict(const std::vector<double>& input) override;
+    void train(const std::vector<std::vector<double>>& inputs, 
+               const std::vector<std::vector<double>>& targets, 
                double learningRate) override;
-    bool save(const QString &path) override;
-    bool load(const QString &path) override;
+    bool save(const std::string& path) override;
+    bool load(const std::string& path) override;
     
     void setHiddenSize(int size);
 
 private:
-    QVector<QVector<double>> weights1; // Input to hidden
-    QVector<QVector<double>> weights2; // Hidden to output
-    QVector<double> bias1;
-    QVector<double> bias2;
+    std::vector<std::vector<double>> weights1; // Input to hidden
+    std::vector<std::vector<double>> weights2; // Hidden to output
+    std::vector<double> bias1;
+    std::vector<double> bias2;
     int inputSize;
     int hiddenSize;
     int outputSize;
     
     double sigmoid(double x);
     double sigmoidDerivative(double x);
-    QVector<double> softmax(const QVector<double> &input);
+    std::vector<double> softmax(const std::vector<double>& input);
 };
 
 // Linear Regression model
@@ -196,16 +189,16 @@ public:
     ~LinearModel();
     
     void initialize(int inputSize, int outputSize) override;
-    QVector<double> predict(const QVector<double> &input) override;
-    void train(const QVector<QVector<double>> &inputs, 
-               const QVector<QVector<double>> &targets, 
+    std::vector<double> predict(const std::vector<double>& input) override;
+    void train(const std::vector<std::vector<double>>& inputs, 
+               const std::vector<std::vector<double>>& targets, 
                double learningRate) override;
-    bool save(const QString &path) override;
-    bool load(const QString &path) override;
+    bool save(const std::string& path) override;
+    bool load(const std::string& path) override;
 
 private:
-    QVector<QVector<double>> weights;
-    QVector<double> bias;
+    std::vector<std::vector<double>> weights;
+    std::vector<double> bias;
     int inputSize;
     int outputSize;
 };
@@ -218,21 +211,21 @@ public:
     ~LogisticModel();
     
     void initialize(int inputSize, int outputSize) override;
-    QVector<double> predict(const QVector<double> &input) override;
-    void train(const QVector<QVector<double>> &inputs, 
-               const QVector<QVector<double>> &targets, 
+    std::vector<double> predict(const std::vector<double>& input) override;
+    void train(const std::vector<std::vector<double>>& inputs, 
+               const std::vector<std::vector<double>>& targets, 
                double learningRate) override;
-    bool save(const QString &path) override;
-    bool load(const QString &path) override;
+    bool save(const std::string& path) override;
+    bool load(const std::string& path) override;
 
 private:
-    QVector<QVector<double>> weights;
-    QVector<double> bias;
+    std::vector<std::vector<double>> weights;
+    std::vector<double> bias;
     int inputSize;
     int outputSize;
     
     double sigmoid(double x);
-    QVector<double> softmax(const QVector<double> &input);
+    std::vector<double> softmax(const std::vector<double>& input);
 };
 
 // Random Forest model (simplified)
@@ -243,34 +236,34 @@ public:
     ~RandomForest();
     
     void initialize(int inputSize, int outputSize) override;
-    QVector<double> predict(const QVector<double> &input) override;
-    void train(const QVector<QVector<double>> &inputs, 
-               const QVector<QVector<double>> &targets, 
+    std::vector<double> predict(const std::vector<double>& input) override;
+    void train(const std::vector<std::vector<double>>& inputs, 
+               const std::vector<std::vector<double>>& targets, 
                double learningRate) override;
-    bool save(const QString &path) override;
-    bool load(const QString &path) override;
+    bool save(const std::string& path) override;
+    bool load(const std::string& path) override;
 
 private:
     struct DecisionTree {
         int featureIndex;
         double threshold;
         double value;
-        DecisionTree *left;
-        DecisionTree *right;
+        DecisionTree* left;
+        DecisionTree* right;
         
         DecisionTree() : featureIndex(-1), threshold(0.0), value(0.0), left(nullptr), right(nullptr) {}
     };
     
-    QVector<DecisionTree*> trees;
+    std::vector<DecisionTree*> trees;
     int inputSize;
     int outputSize;
     int numTrees;
     
-    DecisionTree* buildTree(const QVector<QVector<double>> &data, 
-                           const QVector<int> &labels, 
+    DecisionTree* buildTree(const std::vector<std::vector<double>>& data, 
+                           const std::vector<int>& labels, 
                            int depth = 0);
-    double predictTree(DecisionTree *tree, const QVector<double> &input);
-    void cleanupTree(DecisionTree *tree);
+    double predictTree(DecisionTree* tree, const std::vector<double>& input);
+    void cleanupTree(DecisionTree* tree);
 };
 
 #endif // MODELAINTRAINER_H 

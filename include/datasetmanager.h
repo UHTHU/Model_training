@@ -1,80 +1,73 @@
 #ifndef DATASETMANAGER_H
 #define DATASETMANAGER_H
 
-#include <QObject>
-#include <QString>
-#include <QVector>
-#include <QDir>
-#include <QFileInfo>
-#include <QMutex>
+#include <string>
+#include <vector>
+#include <fstream>
+#include <sstream>
+#include <memory>
+#include <mutex>
 
 struct DatasetInfo {
-    QString path;
-    QString name;
+    std::string path;
+    std::string name;
     int totalSamples;
     int inputFeatures;
     int outputClasses;
-    QString format;
+    std::string format;
     bool isValid;
-    QString errorMessage;
+    std::string errorMessage;
     
     DatasetInfo() : totalSamples(0), inputFeatures(0), outputClasses(0), isValid(false) {}
 };
 
 struct DataSample {
-    QVector<double> features;
+    std::vector<double> features;
     int label;
-    QString type; // "training", "validation", "test"
+    std::string type; // "training", "validation", "test"
     
     DataSample() : label(0) {}
 };
 
-class DatasetManager : public QObject
+class DatasetManager
 {
-    Q_OBJECT
-
 public:
-    explicit DatasetManager(QObject *parent = nullptr);
+    explicit DatasetManager();
     ~DatasetManager();
 
-    bool loadDataset(const QString &path);
-    bool validateDataset(const QString &path);
+    bool loadDataset(const std::string& path);
+    bool validateDataset(const std::string& path);
     DatasetInfo getDatasetInfo() const;
-    QVector<DataSample> getTrainingSamples() const;
-    QVector<DataSample> getValidationSamples() const;
-    QVector<DataSample> getTestSamples() const;
-    QVector<DataSample> getSamples(int start, int count) const;
+    std::vector<DataSample> getTrainingSamples() const;
+    std::vector<DataSample> getValidationSamples() const;
+    std::vector<DataSample> getTestSamples() const;
+    std::vector<DataSample> getSamples(int start, int count) const;
     int getTotalSamples() const;
     int getInputFeatures() const;
     int getOutputClasses() const;
     bool isDatasetLoaded() const;
     void clearDataset();
 
-signals:
-    void datasetLoaded(const DatasetInfo &info);
-    void datasetLoadError(const QString &error);
-    void datasetValidated(bool isValid, const QString &message);
-
 private:
-    bool loadCSVDataset(const QString &path);
-    bool loadImageDataset(const QString &path);
-    bool loadTextDataset(const QString &path);
-    bool loadCustomDataset(const QString &path);
+    bool loadCSVDataset(const std::string& path);
+    bool loadImageDataset(const std::string& path);
+    bool loadTextDataset(const std::string& path);
+    bool loadCustomDataset(const std::string& path);
     
-    void parseCSVLine(const QString &line, DataSample &sample);
-    bool detectDatasetFormat(const QString &path);
+    bool parseCSVLine(const std::string& line, DataSample& sample);
+    bool detectDatasetFormat(const std::string& path);
     void updateDatasetInfo();
     
     DatasetInfo datasetInfo;
-    QVector<DataSample> trainingSamples;
-    QVector<DataSample> validationSamples;
-    QVector<DataSample> testSamples;
+    std::vector<DataSample> trainingSamples;
+    std::vector<DataSample> validationSamples;
+    std::vector<DataSample> testSamples;
     
-    mutable QMutex dataMutex;
+    mutable std::mutex dataMutex;
     bool datasetLoadedFlag;
     
     // Supported formats
-    QStringList supportedFormats;
+    std::vector<std::string> supportedFormats;
 };
 
 #endif // DATASETMANAGER_H 
