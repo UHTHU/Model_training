@@ -76,10 +76,14 @@ int main() {
         std::cout << "You can now build the application using:\n";
         std::cout << "  Windows: .\\build.bat\n";
         std::cout << "  Linux/Mac: ./build.sh\n";
+        std::cout << "\nPress Enter to exit...";
+        std::cin.get();
         return 0;
     } else {
         std::cout << "✗ Some required dependencies are missing.\n";
         std::cout << "Please install the missing dependencies and run this checker again.\n";
+        std::cout << "\nPress Enter to exit...";
+        std::cin.get();
         return 1;
     }
 }
@@ -103,12 +107,24 @@ bool checkCppCompiler() {
         return true;
     }
     
+    // Try MSYS2 specific paths
+    if (runCommand("C:\\msys64\\mingw64\\bin\\g++.exe --version", version)) {
+        std::cout << "   Found MSYS2 GCC: " << version.substr(0, version.find('\n'));
+        return true;
+    }
+    
+    if (runCommand("C:\\msys64\\clang64\\bin\\clang++.exe --version", version)) {
+        std::cout << "   Found MSYS2 Clang: " << version.substr(0, version.find('\n'));
+        return true;
+    }
+    
     return false;
 }
 
 bool checkCMake() {
     std::string version;
     
+    // Try standard CMake
     if (runCommand("cmake --version", version)) {
         // Extract version number
         size_t pos = version.find("cmake version ");
@@ -119,6 +135,28 @@ bool checkCMake() {
                 versionStr = versionStr.substr(0, endPos);
             }
             std::cout << "   Found CMake: " << versionStr;
+            
+            // Parse version
+            size_t dot1 = versionStr.find('.');
+            size_t dot2 = versionStr.find('.', dot1 + 1);
+            if (dot1 != std::string::npos && dot2 != std::string::npos) {
+                int major = std::stoi(versionStr.substr(0, dot1));
+                int minor = std::stoi(versionStr.substr(dot1 + 1, dot2 - dot1 - 1));
+                return major > 3 || (major == 3 && minor >= 16);
+            }
+        }
+    }
+    
+    // Try MSYS2 CMake
+    if (runCommand("C:\\msys64\\mingw64\\bin\\cmake.exe --version", version)) {
+        size_t pos = version.find("cmake version ");
+        if (pos != std::string::npos) {
+            std::string versionStr = version.substr(pos + 14);
+            size_t endPos = versionStr.find('\n');
+            if (endPos != std::string::npos) {
+                versionStr = versionStr.substr(0, endPos);
+            }
+            std::cout << "   Found MSYS2 CMake: " << versionStr;
             
             // Parse version
             size_t dot1 = versionStr.find('.');
@@ -183,6 +221,10 @@ int main() {
         success = true;
     } else if (runCommand("cl /std:c++17 " + testFile + " /Fe:cpp17_test.exe", output)) {
         success = true;
+    } else if (runCommand("C:\\msys64\\mingw64\\bin\\g++.exe -std=c++17 -o cpp17_test " + testFile, output)) {
+        success = true;
+    } else if (runCommand("C:\\msys64\\clang64\\bin\\clang++.exe -std=c++17 -o cpp17_test " + testFile, output)) {
+        success = true;
     }
     
     // Clean up
@@ -224,6 +266,10 @@ int main() {
     } else if (runCommand("clang++ -std=c++17 -o filesystem_test " + testFile, output)) {
         success = true;
     } else if (runCommand("cl /std:c++17 " + testFile + " /Fe:filesystem_test.exe", output)) {
+        success = true;
+    } else if (runCommand("C:\\msys64\\mingw64\\bin\\g++.exe -std=c++17 -o filesystem_test " + testFile, output)) {
+        success = true;
+    } else if (runCommand("C:\\msys64\\clang64\\bin\\clang++.exe -std=c++17 -o filesystem_test " + testFile, output)) {
         success = true;
     }
     
@@ -271,6 +317,10 @@ int main() {
     } else if (runCommand("clang++ -std=c++17 -pthread -o threading_test " + testFile, output)) {
         success = true;
     } else if (runCommand("cl /std:c++17 " + testFile + " /Fe:threading_test.exe", output)) {
+        success = true;
+    } else if (runCommand("C:\\msys64\\mingw64\\bin\\g++.exe -std=c++17 -pthread -o threading_test " + testFile, output)) {
+        success = true;
+    } else if (runCommand("C:\\msys64\\clang64\\bin\\clang++.exe -std=c++17 -pthread -o threading_test " + testFile, output)) {
         success = true;
     }
     

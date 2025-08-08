@@ -27,8 +27,8 @@ chmod +x check_requirements.sh
 ```
 
 The checker will verify:
-- C++17 compatible compiler (GCC 7+, Clang 5+, MSVC 2017+)
-- CMake 3.16 or higher
+- C++17 compatible compiler (GCC 7+, Clang 5+, MSVC 2017+, MSYS2 GCC/Clang)
+- CMake 3.16 or higher (including MSYS2 CMake)
 - C++17 standard library features
 - Filesystem support
 - Threading support
@@ -37,10 +37,40 @@ The checker will verify:
 
 ## Building the Application
 
+### Setting up MSYS2 (Windows)
+
+If you prefer a Unix-like development environment on Windows, MSYS2 is recommended:
+
+1. **Download and Install MSYS2**:
+   - Go to [msys2.org](https://www.msys2.org/)
+   - Download and run the installer
+   - Follow the installation instructions
+
+2. **Install Required Packages**:
+   ```bash
+   # Open MSYS2 MinGW 64-bit terminal
+   pacman -Syu
+   pacman -S mingw-w64-x86_64-gcc
+   pacman -S mingw-w64-x86_64-cmake
+   pacman -S mingw-w64-x86_64-make
+   pacman -S mingw-w64-x86_64-clang  # Optional: for Clang support
+   ```
+
+3. **Add to PATH** (optional):
+   - Add `C:\msys64\mingw64\bin` to your system PATH
+   - This allows using MSYS2 tools from regular Command Prompt
+
 ### Prerequisites
 
 - CMake 3.16 or higher
 - C++17 compatible compiler (GCC 7+, Clang 5+, MSVC 2017+)
+
+**Windows Development Options:**
+1. **Visual Studio 2019/2022** with C++ workload
+2. **MSYS2** (recommended for Unix-like development experience)
+   - Download from [msys2.org](https://www.msys2.org/)
+   - Install with: `pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make`
+3. **MinGW-w64** standalone
 
 ### Windows
 
