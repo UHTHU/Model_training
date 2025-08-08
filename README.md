@@ -11,6 +11,30 @@ A command-line interface (CLI) application for training machine learning models.
 - **Cross-platform**: Works on Windows, Linux, and macOS
 - **No External Dependencies**: Pure C++ implementation without Qt or other GUI frameworks
 
+## System Requirements Check
+
+Before building the application, you can run the system requirements checker to verify that your system meets all the necessary requirements:
+
+### Windows
+```batch
+check_requirements.bat
+```
+
+### Linux/macOS
+```bash
+chmod +x check_requirements.sh
+./check_requirements.sh
+```
+
+The checker will verify:
+- C++17 compatible compiler (GCC 7+, Clang 5+, MSVC 2017+)
+- CMake 3.16 or higher
+- C++17 standard library features
+- Filesystem support
+- Threading support
+- Build directory permissions
+- Sample data availability
+
 ## Building the Application
 
 ### Prerequisites
@@ -130,6 +154,9 @@ Model_training/
 ├── CMakeLists.txt    # Build configuration
 ├── build.bat         # Windows build script
 ├── build.sh          # Linux/macOS build script
+├── check_requirements.cpp  # System requirements checker
+├── check_requirements.bat  # Windows requirements checker script
+├── check_requirements.sh   # Linux/macOS requirements checker script
 └── README.md         # This file
 ```
 
