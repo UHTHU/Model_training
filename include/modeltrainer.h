@@ -104,6 +104,7 @@ private:
     std::vector<int> getBatchLabels(int batchIndex);
     void normalizeData();
     void shuffleData();
+    void generateDummyData();
     
     // Model instances
     std::unique_ptr<NeuralNetwork> neuralNetwork;
